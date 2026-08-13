@@ -21,3 +21,20 @@ def criar_produto(produto: ProdutoCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(novo_produto)
     return novo_produto
+
+from fastapi import HTTPException
+# GET /produtos/{id} -> consulta um produto pelo id no banco
+@app.get('/produtos/{produto_id}', response_model=ProdutoResponse)
+def obter_produto(produto_id: int, db: Session = Depends(get_db)):
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == produto_id).first()
+    if produto is None:
+        raise HTTPException(status_code=404, detail='Produto não encontrado')
+    return produto
+# DELETE /produtos/{id} -> remove um produto do banco
+@app.delete('/produtos/{produto_id}', status_code=204)
+def remover_produto(produto_id: int, db: Session = Depends(get_db)):
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == produto_id).first()
+    if produto is None:
+        raise HTTPException(status_code=404, detail='Produto não encontrado')
+    db.delete(produto)
+    db.commit()
